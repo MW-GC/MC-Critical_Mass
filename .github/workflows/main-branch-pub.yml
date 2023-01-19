@@ -1,4 +1,4 @@
-name: Merge Publisher
+name: Main Branch Publisher
 
 # Run when a new release is... released
 on:
