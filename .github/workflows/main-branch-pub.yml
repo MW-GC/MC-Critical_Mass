@@ -32,14 +32,14 @@ jobs:
         uses: notiz-dev/github-action-json-property@release
         with:
           path: 'manifest.json'
-          prop_path: 'version_number'
+          prop_path: 'version'
           
       - name: Get MC Version
         id: game-version
         uses: notiz-dev/github-action-json-property@release
         with:
           path: 'manifest.json'
-          prop_path: 'version'
+          prop_path: 'minecraft.version'
           
       - name: Get Release Notes
         id: extract-release-notes
