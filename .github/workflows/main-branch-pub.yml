@@ -1,0 +1,98 @@
+name: Merge Publisher
+
+# Run when a new release is... released
+on:
+  pull_request:
+    types: [closed]
+    branches:    
+      - main
+jobs:
+  build:
+    if: github.event.pull_request.merged == true
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+    
+# ------------ READY FILES --------------    
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Zip Modpack
+        run: zip -r modpack.zip *
+        
+      - name: Build Server
+        uses: henkelmax/build-modpack-server-action@v1.0.0
+        with:
+          modpack-path: ./modpack.zip
+          output-path: ./modpack-server.zip
+          
+# ------------ SET VARIABLES -------------          
+      - name: Get New Version
+        id: version
+        uses: notiz-dev/github-action-json-property@release
+        with:
+          path: 'manifest.json'
+          prop_path: 'version_number'
+          
+      - name: Get MC Version
+        id: game-version
+        uses: notiz-dev/github-action-json-property@release
+        with:
+          path: 'manifest.json'
+          prop_path: 'version'
+          
+      - name: Get Release Notes
+        id: extract-release-notes
+        uses: ffurrer2/extract-release-notes@v1
+        with:
+          changelog_file: README.md
+          
+      - name: Copy files for CurseForge upload
+        run: |
+          mkdir -p curse_upload
+          cp ./modpack.zip './curse_upload/DeliveryInc-${{steps.version.outputs.prop}}.zip'
+          cp ./modpack-server.zip './curse_upload/DeliveryInc-Server-${{steps.version.outputs.prop}}.zip'
+
+# ------------ RELEASE ------------------
+      - name: Create Release
+        id: new_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{steps.version.outputs.prop}} 
+          release_name: ${{steps.version.outputs.prop}} 
+          draft: false
+          prerelease: false
+          body: ${{ steps.extract-release-notes.outputs.release_notes }}
+
+# ----------- PUBLISH -------------
+      - name: Upload to CurseForge
+        uses: henkelmax/upload-curseforge-modpack-action@v1.0.0
+        with:
+          api-token: ${{ secrets.API_TOKEN }}
+          project-id: '445975'
+          modpack-path: './curse_upload/DeliveryInc-${{steps.version.outputs.prop}}.zip'
+          modpack-server-path: './curse_upload/DeliveryInc-Server-${{steps.version.outputs.prop}}.zip'
+          changelog: ${{ steps.extract-release-notes.outputs.release_notes }}
+          changelog-format: 'markdown'
+          game-version: ${{steps.game-version.outputs.prop}} 
+          display-name: 'Delivery Inc. ${{steps.version.outputs.prop}}'
+          server-display-name: 'Delivery Inc. Server ${{steps.version.outputs.prop}}'
+          release-type: 'release'
+          
+      - name: Upload Modpack
+        uses: actions/upload-release-asset@v1.0.2
+        with:
+          upload_url: ${{ steps.new_release.outputs.upload_url }}
+          asset_path: ./modpack.zip
+          asset_name: 'Delivery-Inc-${{steps.version.outputs.prop}}.zip'
+          asset_content_type: application/zip
+          
+      - name: Upload Server
+        uses: actions/upload-release-asset@v1.0.2
+        with:
+          upload_url: ${{ steps.new_release.outputs.upload_url }}
+          asset_path: ./modpack-server.zip
+          asset_name: 'Delivery-Inc-Server-${{steps.version.outputs.prop}}.zip'
+          asset_content_type: application/zip
