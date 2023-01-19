@@ -13,6 +13,7 @@ If you have any issues, suggestions, etc, please let us know!
 ## [0.0.3]
 Created publishing workflow for easy updating of the pack.
 Fixed workflow from source examples.
+Fixed workflow again
 
 ## [0.0.0]
 Emergency FOV Patch. Quests are next.
