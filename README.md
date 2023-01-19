@@ -10,6 +10,8 @@ This is where updates will be staged, and betas will be tested.
 If you have any issues, suggestions, etc, please let us know!
 
 # CHANGELOG
+## [0.0.3]
+Created publishing workflow for easy updating of the pack.
 
 ## [0.0.0]
 Emergency FOV Patch. Quests are next.
